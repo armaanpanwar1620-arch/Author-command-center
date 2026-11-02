@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AETHOR // OS</title>
+    <style>
+        :root {
+            --bg: #030712;
+            --panel: rgba(10, 25, 47, 0.6);
+            --border: rgba(0, 240, 255, 0.25);
+            --cyan: #00f0ff;
+            --white: #ffffff;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--white);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 12px 16px 20px 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Tactical HUD Background Subgrid */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(circle at 50% 40%, rgba(0, 240, 255, 0.07) 0%, transparent 70%),
+                linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 20px 20px, 20px 20px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* --- FUTURISTIC TOP STATUS BAR --- */
+        .top-status-bar {
+            position: relative;
+            z-index: 20;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            color: var(--white);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+            margin-bottom: 15px;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.9;
+        }
+
+        .status-left span {
+            font-weight: 700;
+            color: var(--white);
+            text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--cyan);
+            font-family: monospace;
+        }
+
+        .live-clock {
+            font-weight: bold;
+        }
+
+        /* Main Identity Header */
+        .hud-header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            backdrop-filter: blur(12px);
+        }
+
+        .sys-identity h1 {
+            font-size: 1rem;
+            letter-spacing: 2px;
+            font-weight: 800;
+        }
+
+        .sys-identity span {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--cyan);
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--cyan);
+        }
+
+        /* Central Arc Reactor Display */
+        .reactor-section {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .arc-reactor {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .ring-outer {
+            position: absolute;
+            inset: 0;
+            border: 1px dashed var(--cyan);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: spinClockwise 25s linear infinite;
+        }
+
+        .ring-inner {
+            position: absolute;
+            inset: 18px;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--cyan);
+            border-bottom: 2px solid var(--cyan);
+            border-radius: 50%;
+            animation: spinCounter 12s linear infinite;
+        }
+
+        .core-orb {
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff 0%, var(--cyan) 40%, rgba(3,7,18,0.95) 85%);
+            border: 1px solid var(--cyan);
+            box-shadow: 0 0 35px var(--cyan), inset 0 0 15px #fff;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .core-orb:active {
+            transform: scale(0.92);
+        }
+
+        .reactor-label {
+            margin-top: 12px;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        /* Command Grid Tiles */
+        .command-grid {
+            position: relative;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+        }
+
+        .hud-tile {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .hud-tile:active {
+            transform: scale(0.97);
+            border-color: var(--cyan);
+            background: rgba(0, 240, 255, 0.1);
+        }
+
+        .tile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tile-icon {
+            font-size: 1.1rem;
+            color: var(--cyan);
+        }
+
+        .tile-tag {
+            font-size: 0.55rem;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .tile-body h3 {
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .tile-body p {
+            font-size: 0.6rem;
+            color: var(--text-dim);
+        }
+
+        /* Console Output Bar */
+        .console-bar {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.65rem;
+            color: var(--cyan);
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        @keyframes spinClockwise {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes spinCounter {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CUSTOM TOP STATUS BAR -->
+    <div class="top-status-bar">
+        <div class="status-left">
+            <span>AETHOR</span> // SECURE
+        </div>
+        <div class="status-right">
+            <span id="liveClock" class="live-clock">00:00</span>
+            <span>5G 📶</span>
+        </div>
+    </div>
+
+    <!-- HUD Header -->
+    <header class="hud-header">
+        <div class="sys-identity">
+            <h1>ARC CORE // OS</h1>
+            <span>BOSS: ARMAAN</span>
+        </div>
+        <div class="status-pill">
+            <div class="status-dot"></div>
+            <span id="sysStatus">ONLINE</span>
+        </div>
+    </header>
+
+    <!-- Arc Reactor Core -->
+    <main class="reactor-section">
+        <div class="arc-reactor" onclick="triggerCorePulse()">
+            <div class="ring-outer"></div>
+            <div class="ring-inner"></div>
+            <div class="core-orb"></div>
+        </div>
+        <div class="reactor-label" id="reactorState">ARC CORE // OPTIMAL</div>
+    </main>
+
+    <!-- Command Tiles -->
+    <section class="command-grid">
+        <div class="hud-tile" onclick="executeTileCommand('DIAGNOSTICS', 'Sensors: OK | Memory: 94% Free')">
+            <div class="tile-header">
+                <span class="tile-icon">⚡</span>
+                <span class="tile-tag">SYS-01</span>
+            </div>
+            <div class="tile-body">
+                <h3>DIAGNOSTICS</h3>
+                <p>System Health Check</p>
+            </div>
+        </div>
+
+        <div class="hud-tile" onclick="executeTileCommand('STARK HUB', 'Loading visual overlays...')">
+            <div class="tile-header">
+                <span class="tile-icon">🛡️</span>
+                <span class="tile-tag">UI-02</span>
+            </div>
+            <div class="tile-body">
+                <h3>SOCIAL GRID</h3>
+                <p>Futuristic HUD View</p>
+            </div>
+        </div>
+
+        <div class="hud-tile" onclick="executeTileCommand('CAMERA LINK', 'Opening AMOLED Viewfinder...')">
+            <div class="tile-header">
+                <span class="tile-icon">👁️</span>
+                <span class="tile-tag">CAM-03</span>
+            </div>
+            <div class="tile-body">
+                <h3>STARK CAM</h3>
+                <p>Optical Feed</p>
+            </div>
+        </div>
+
+        <div class="hud-tile" onclick="executeTileCommand('PC BRIDGE', 'Waiting for Ollama host...')">
+            <div class="tile-header">
+                <span class="tile-icon">💻</span>
+                <span class="tile-tag">LINK-04</span>
+            </div>
+            <div class="tile-body">
+                <h3>PC BRIDGE</h3>
+                <p>Aethor Core Link</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Console Output Log -->
+    <footer class="console-bar" id="consoleLog">
+        > SYSTEM STABLE. WELCOME BACK, ARMAAN.
+    </footer>
+
+    <script>
+        // Live Real-Time Clock Updater for Top Bar
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            hours = hours < 10 ? '0' + hours : hours;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('liveClock').innerText = `${hours}:${minutes}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Haptic Vibration Feedback
+        function triggerHaptic(duration = 20) {
+            if ("vibrate" in navigator) navigator.vibrate(duration);
+        }
+
+        // Tap Core Reactor logic
+        function triggerCorePulse() {
+            triggerHaptic(40);
+            const status = document.getElementById('sysStatus');
+            const label = document.getElementById('reactorState');
+            const log = document.getElementById('consoleLog');
+
+            if (status.innerText === "ONLINE") {
+                status.innerText = "OVERCLOCK";
+                status.style.color = "#00f0ff";
+                label.innerText = "ARC CORE // MAXIMUM";
+                log.innerText = "> ARC REACTOR OVERCLOCK ACTIVATED.";
+            } else {
+                status.innerText = "ONLINE";
+                status.style.color = "#94a3b8";
+                label.innerText = "ARC CORE // OPTIMAL";
+                log.innerText = "> RETURNED TO STANDBY STABILITY.";
+            }
+        }
+
+        // Execute Tile Actions
+        function executeTileCommand(name, detail) {
+            triggerHaptic(15);
+            document.getElementById('consoleLog').innerText = `> [${name}]: ${detail}`;
+        }
+    </script>
+</body>
+</html>
